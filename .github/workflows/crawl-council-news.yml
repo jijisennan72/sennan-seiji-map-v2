@@ -1,0 +1,23 @@
+name: Crawl Council News
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # 毎日8時JST (UTC 23時)
+  workflow_dispatch:       # 手動実行ボタン
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm ci
+
+      - run: npx tsx scripts/crawl-council-news.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

@@ -110,7 +110,8 @@ export default async function Home() {
 
       {/* ── カードセクション ── */}
       <main className="max-w-5xl mx-auto px-4 relative z-10">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* 市町カード */}
           {municipalities?.filter((muni) => DISPLAY_MUNICIPALITY_IDS.includes(muni.id)).sort((a, b) => DISPLAY_MUNICIPALITY_IDS.indexOf(a.id) - DISPLAY_MUNICIPALITY_IDS.indexOf(b.id)).map((muni) => {
             const accent = cardAccent[muni.id] ?? defaultAccent;
             const memberCount = countMap[muni.id] ?? 0;
@@ -124,14 +125,9 @@ export default async function Home() {
                 <h3 className="text-xl font-bold text-slate-900">{muni.name}</h3>
                 <div className="mt-3 flex gap-3">
                   <span className={`inline-flex items-center gap-1 text-sm font-semibold ${accent.icon}`}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
                     {memberCount}名
                   </span>
-                  <span className="inline-flex items-center gap-1 text-sm text-slate-500">
-                    {partyCount}会派
-                  </span>
+                  <span className="text-sm text-slate-500">{partyCount}会派</span>
                 </div>
                 <div className={`mt-4 text-xs font-medium text-white ${accent.badge} rounded-full px-3 py-1 w-fit`}>
                   議員一覧を見る
@@ -140,22 +136,27 @@ export default async function Home() {
             );
           })}
 
-          {/* 国会議員カード */}
-          <div className="group block bg-white rounded-2xl border-t-4 border-red-500 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-6">
-            <h3 className="text-xl font-bold text-slate-900">泉州エリア国会議員</h3>
-            <div className="mt-3 flex flex-col gap-1.5">
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-red-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                3名
-              </span>
-              <span className="text-xs text-slate-500">大阪18区・19区</span>
-            </div>
-            <div className="mt-4 text-xs font-medium text-white bg-red-500 rounded-full px-3 py-1 w-fit">
-              議員一覧を見る
-            </div>
-          </div>
+          {/* 国会議員カード（個別3枚） */}
+          {[
+            { name: "遠藤敬",   district: "大阪18区", party: "維新", house: "衆議院" },
+            { name: "谷川とむ", district: "大阪19区", party: "自民", house: "衆議院" },
+            { name: "伊東信久", district: "大阪19区", party: "維新", house: "衆議院" },
+          ].map((mp) => (
+            <Link
+              key={mp.name}
+              href={`/members/kokkai/${encodeURIComponent(mp.name)}`}
+              className="group block bg-white rounded-2xl border-t-4 border-red-500 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-6"
+            >
+              <h3 className="text-xl font-bold text-slate-900">{mp.name}</h3>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="text-xs font-semibold bg-red-100 text-red-700 rounded-full px-2.5 py-0.5">{mp.party}</span>
+                <span className="text-xs text-slate-500">{mp.district}・{mp.house}</span>
+              </div>
+              <div className="mt-4 text-xs font-medium text-white bg-red-500 rounded-full px-3 py-1 w-fit">
+                発言を見る
+              </div>
+            </Link>
+          ))}
         </div>
 
         {/* ── 最新議会情報セクション ── */}

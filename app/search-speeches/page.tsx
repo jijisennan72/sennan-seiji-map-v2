@@ -43,7 +43,7 @@ export default async function SearchSpeechesPage({
 
   let dbQuery = supabase
     .from("speeches")
-    .select("id, city, member_name, session_name, session_date, content, source_url", { count: "exact" })
+    .select("id, city, member_name, session_name, session_date, content, source_url")
     .textSearch("content", tsquery, { config: "simple" })
     .order("session_date", { ascending: false })
     .limit(50);
@@ -52,7 +52,7 @@ export default async function SearchSpeechesPage({
     dbQuery = dbQuery.eq("city", cityFilter);
   }
 
-  const { data, count } = await dbQuery;
+  const { data } = await dbQuery;
   const results = data ?? [];
   const cityLabel = cityFilter === "all" ? "全市町" : (cityNameMap[cityFilter] ?? cityFilter);
 
@@ -63,7 +63,7 @@ export default async function SearchSpeechesPage({
           <Link href="/" className="text-sm text-slate-400 hover:text-white transition-colors">← トップに戻る</Link>
           <h1 className="text-3xl font-extrabold mt-3">発言検索</h1>
           <p className="mt-2 text-slate-400">
-            「{query}」の検索結果 — {cityLabel} — {count ?? results.length}件
+            「{query}」の検索結果 — {cityLabel} — {results.length}件
           </p>
         </div>
       </header>

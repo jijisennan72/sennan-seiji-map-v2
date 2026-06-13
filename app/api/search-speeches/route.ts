@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("speeches")
-    .select("city, member_name, session_name, session_date, content, source_url", { count: "exact" })
+    .select("id, city, member_name, session_name, session_date, content, source_url")
     .textSearch("content", tsquery, { config: "simple" })
     .order("session_date", { ascending: false })
     .limit(50);
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     query = query.eq("city", city);
   }
 
-  const { data, count, error } = await query;
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ results: [], total: 0, error: error.message }, { status: 500 });
@@ -41,5 +41,5 @@ export async function GET(req: NextRequest) {
     content_full: r.content,
   }));
 
-  return NextResponse.json({ results, total: count ?? results.length });
+  return NextResponse.json({ results, total: results.length });
 }

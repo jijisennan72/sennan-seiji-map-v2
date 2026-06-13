@@ -13,9 +13,10 @@ const defaultAccent = { border: "border-slate-300", badge: "bg-slate-500", icon:
 
 export default async function Home() {
   const supabase = getSupabase();
-  const [{ data: municipalities }, { data: members }] = await Promise.all([
+  const [{ data: municipalities }, { data: members }, { data: newsRows }] = await Promise.all([
     supabase.from("municipalities").select("id, name, region").order("id"),
     supabase.from("members_v2").select("municipality_id, party"),
+    supabase.from("council_news").select("city, event_date, title").order("event_date", { ascending: false }).limit(5),
   ]);
 
   // 各自治体の議員数・会派数を集計
@@ -32,12 +33,16 @@ export default async function Home() {
   const totalMembers = members?.length ?? 0;
   const totalMunicipalities = municipalities?.length ?? 0;
 
-  // ダミー最新議会情報
-  const latestNews = [
-    { date: "2026.06.10", city: "泉南市",   label: "令和7年第4回定例会 開催" },
-    { date: "2026.06.08", city: "阪南市",   label: "令和7年第3回定例会 一般質問" },
-    { date: "2026.06.05", city: "泉佐野市", label: "令和7年予算委員会" },
-  ];
+  const cityNameMap: Record<string, string> = {
+    sennan: "泉南市", hannan: "阪南市", izumisano: "泉佐野市",
+    misaki: "岬町", tajiri: "田尻町", kumatori: "熊取町",
+  };
+
+  const latestNews = (newsRows ?? []).map((r: { city: string; event_date: string; title: string }) => ({
+    date: r.event_date?.replace(/-/g, ".") ?? "",
+    city: cityNameMap[r.city] ?? r.city,
+    label: r.title,
+  }));
 
   return (
     <div className="min-h-screen bg-slate-50">

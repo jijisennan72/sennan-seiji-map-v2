@@ -125,13 +125,12 @@ async function crawlMisaki(): Promise<NewsItem[]> {
     if (!dateText || !schedule) return;
 
     const dateMatch = dateText.match(/(\d+)\/(\d+)/);
-    let eventDate: string | null = null;
-    if (dateMatch) {
-      const now = new Date();
-      const month = dateMatch[1].padStart(2, "0");
-      const day = dateMatch[2].padStart(2, "0");
-      eventDate = `${now.getFullYear()}-${month}-${day}`;
-    }
+    if (!dateMatch) return; // 日付がない行はスキップ
+
+    const now = new Date();
+    const month = dateMatch[1].padStart(2, "0");
+    const day = dateMatch[2].padStart(2, "0");
+    const eventDate = `${now.getFullYear()}-${month}-${day}`;
 
     items.push({
       city: "misaki",

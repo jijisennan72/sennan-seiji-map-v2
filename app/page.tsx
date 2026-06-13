@@ -16,7 +16,7 @@ export default async function Home() {
   const [{ data: municipalities }, { data: members }, { data: newsRows }] = await Promise.all([
     supabase.from("municipalities").select("id, name, region").order("id"),
     supabase.from("members_v2").select("municipality_id, party"),
-    supabase.from("council_news").select("city, event_date, title").order("event_date", { ascending: false }).limit(5),
+    supabase.from("council_news").select("city, event_date, title, url").not("event_date", "is", null).order("event_date", { ascending: false }).limit(5),
   ]);
 
   // 各自治体の議員数・会派数を集計
@@ -38,10 +38,11 @@ export default async function Home() {
     misaki: "岬町", tajiri: "田尻町", kumatori: "熊取町",
   };
 
-  const latestNews = (newsRows ?? []).map((r: { city: string; event_date: string; title: string }) => ({
+  const latestNews = (newsRows ?? []).map((r: { city: string; event_date: string; title: string; url: string | null }) => ({
     date: r.event_date?.replace(/-/g, ".") ?? "",
     city: cityNameMap[r.city] ?? r.city,
     label: r.title,
+    url: r.url,
   }));
 
   return (
@@ -120,21 +121,28 @@ export default async function Home() {
         <section className="mt-14">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-xl font-bold text-slate-900">最新の議会情報</h2>
-            <span className="text-sm text-sky-600 hover:text-sky-700 cursor-pointer font-medium">
+            <Link href="/council-news" className="text-sm text-sky-600 hover:text-sky-700 font-medium">
               もっと見る →
-            </span>
+            </Link>
           </div>
           <div className="bg-white rounded-2xl shadow-md divide-y divide-slate-100">
             {latestNews.map((item, i) => (
-              <div key={i} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
+              <a
+                key={i}
+                href={item.url ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors"
+              >
                 <time className="text-sm text-slate-400 font-mono w-24 flex-shrink-0">
                   {item.date}
                 </time>
                 <span className="text-xs font-semibold text-white bg-slate-700 rounded-full px-2.5 py-0.5 flex-shrink-0">
                   {item.city}
                 </span>
-                <span className="text-sm text-slate-700">{item.label}</span>
-              </div>
+                <span className="text-sm text-slate-700 flex-1">{item.label}</span>
+                <span className="text-slate-300 text-sm flex-shrink-0">↗</span>
+              </a>
             ))}
           </div>
         </section>

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import Link from "next/link";
 import MemberGrid from "./MemberGrid";
 
@@ -12,6 +12,7 @@ export default async function MunicipalityPage({
   const { municipalityId } = await params;
   const muniId = Number(municipalityId);
 
+  const supabase = getSupabase();
   const [{ data: municipality }, { data: members }] = await Promise.all([
     supabase.from("municipalities").select("id, name").eq("id", muniId).single(),
     supabase

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import MemberDetail from "./MemberDetail";
 
@@ -21,6 +21,7 @@ export default async function MemberPage({
   const muniId = Number(municipalityId);
   const memId = Number(memberId);
 
+  const supabase = getSupabase();
   const [
     { data: municipality },
     { data: member },

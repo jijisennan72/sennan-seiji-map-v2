@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +12,7 @@ const cardAccent: Record<number, { border: string; badge: string; icon: string }
 const defaultAccent = { border: "border-slate-300", badge: "bg-slate-500", icon: "text-slate-400" };
 
 export default async function Home() {
+  const supabase = getSupabase();
   const [{ data: municipalities }, { data: members }] = await Promise.all([
     supabase.from("municipalities").select("id, name, region").order("id"),
     supabase.from("members_v2").select("municipality_id, party"),

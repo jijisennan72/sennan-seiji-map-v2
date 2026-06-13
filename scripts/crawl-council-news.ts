@@ -178,15 +178,100 @@ async function crawlTajiri(): Promise<NewsItem[]> {
   return items;
 }
 
+// ── 泉佐野市 ────────────────────────────────────────────────────
+// SMART CMS の index.update.json + nittei_kekka/index.tree.json から取得
+async function crawlIzumisano(): Promise<NewsItem[]> {
+  const items: NewsItem[] = [];
+
+  // 新着情報
+  try {
+    const updateRes = await fetch("https://www.city.izumisano.lg.jp/shigikai/index.update.json");
+    if (updateRes.ok) {
+      const updates = await updateRes.json() as { page_name: string; url: string; publish_datetime: string }[];
+      for (const u of updates) {
+        items.push({
+          city: "izumisano",
+          event_date: u.publish_datetime?.slice(0, 10) ?? null,
+          title: u.page_name,
+          url: u.url,
+        });
+      }
+    }
+  } catch { /* skip */ }
+
+  // 会議日程の子ページ
+  try {
+    const treeRes = await fetch("https://www.city.izumisano.lg.jp/shigikai/nittei_kekka/index.tree.json");
+    if (treeRes.ok) {
+      const pages = await treeRes.json() as { page_name: string; url: string; publish_datetime: string }[];
+      for (const p of pages) {
+        if (items.some((i) => i.title === p.page_name)) continue;
+        items.push({
+          city: "izumisano",
+          event_date: p.publish_datetime?.slice(0, 10) ?? null,
+          title: p.page_name,
+          url: p.url,
+        });
+      }
+    }
+  } catch { /* skip */ }
+
+  return items;
+}
+
+// ── 熊取町 ──────────────────────────────────────────────────────
+// SMART CMS の index.update.json + nittei/index.tree.json から取得
+async function crawlKumatori(): Promise<NewsItem[]> {
+  const items: NewsItem[] = [];
+  const base = "https://www.town.kumatori.lg.jp/soshiki/gikai_somu/gyomu/kumatori_gikai";
+
+  // 新着情報
+  try {
+    const updateRes = await fetch(`${base}/index.update.json`);
+    if (updateRes.ok) {
+      const updates = await updateRes.json() as { page_name: string; url: string; publish_datetime: string }[];
+      for (const u of updates) {
+        items.push({
+          city: "kumatori",
+          event_date: u.publish_datetime?.slice(0, 10) ?? null,
+          title: u.page_name,
+          url: u.url,
+        });
+      }
+    }
+  } catch { /* skip */ }
+
+  // 会議日程の子ページ
+  try {
+    const treeRes = await fetch(`${base}/nittei/index.tree.json`);
+    if (treeRes.ok) {
+      const pages = await treeRes.json() as { page_name: string; url: string; publish_datetime: string }[];
+      for (const p of pages) {
+        if (items.some((i) => i.title === p.page_name)) continue;
+        items.push({
+          city: "kumatori",
+          event_date: p.publish_datetime?.slice(0, 10) ?? null,
+          title: p.page_name,
+          url: p.url,
+        });
+      }
+    }
+  } catch { /* skip */ }
+
+  return items;
+}
+
 // ── メイン ──────────────────────────────────────────────────────
 
 type Crawler = { city: string; fn: () => Promise<NewsItem[]> };
 
 const crawlers: Crawler[] = [
-  { city: "泉南市",   fn: crawlSennan },
-  { city: "阪南市",   fn: crawlHannan },
-  { city: "岬町",     fn: crawlMisaki },
-  { city: "田尻町",   fn: crawlTajiri },
+  { city: "泉南市",     fn: crawlSennan },
+  { city: "阪南市",     fn: crawlHannan },
+  { city: "泉佐野市",   fn: crawlIzumisano },
+  { city: "岬町",       fn: crawlMisaki },
+  { city: "田尻町",     fn: crawlTajiri },
+  { city: "熊取町",     fn: crawlKumatori },
 ];
 
 async function main() {

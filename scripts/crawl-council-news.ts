@@ -9,10 +9,8 @@
 import { createClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
 
-const SUPABASE_URL = process.env.SUPABASE_URL || "https://supabase.hama02.shizuku.net";
-const SUPABASE_SERVICE_ROLE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  "REMOVED_SERVICE_ROLE_KEY";
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },

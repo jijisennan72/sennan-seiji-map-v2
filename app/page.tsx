@@ -74,8 +74,39 @@ export default async function Home() {
         </div>
       </header>
 
+      {/* ── 検索フォーム ── */}
+      <div className="max-w-5xl mx-auto px-4 -mt-8 relative z-10 mb-6">
+        <form action="/search-speeches" method="get" className="bg-white rounded-2xl shadow-md p-4 flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            name="q"
+            placeholder="議員発言を検索... 例：子育て 財政 道路"
+            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-300"
+          />
+          <select
+            name="city"
+            defaultValue="all"
+            className="px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-600 bg-white"
+          >
+            <option value="all">全市町</option>
+            <option value="sennan">泉南市</option>
+            <option value="hannan">阪南市</option>
+            <option value="izumisano">泉佐野市</option>
+            <option value="misaki">岬町</option>
+            <option value="tajiri">田尻町</option>
+            <option value="kumatori">熊取町</option>
+          </select>
+          <button
+            type="submit"
+            className="px-6 py-2.5 bg-[#0f172a] text-white text-sm font-semibold rounded-xl hover:bg-slate-800 transition-colors"
+          >
+            検索
+          </button>
+        </form>
+      </div>
+
       {/* ── 自治体カードセクション ── */}
-      <main className="max-w-5xl mx-auto px-4 -mt-8 relative z-10">
+      <main className="max-w-5xl mx-auto px-4 relative z-10">
         <div className="grid gap-5 sm:grid-cols-3">
           {municipalities?.map((muni) => {
             const accent = cardAccent[muni.id] ?? defaultAccent;

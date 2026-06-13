@@ -15,11 +15,13 @@ type Speech = {
 const cityNameMap: Record<string, string> = {
   sennan: "泉南市", hannan: "阪南市", izumisano: "泉佐野市",
   misaki: "岬町", tajiri: "田尻町", kumatori: "熊取町",
+  kokkai: "国会",
 };
 
 const cityBadgeColor: Record<string, string> = {
   sennan: "bg-orange-600", hannan: "bg-sky-600", izumisano: "bg-indigo-600",
   misaki: "bg-teal-600", tajiri: "bg-rose-600", kumatori: "bg-violet-600",
+  kokkai: "bg-red-700",
 };
 
 function highlightText(text: string, query: string) {

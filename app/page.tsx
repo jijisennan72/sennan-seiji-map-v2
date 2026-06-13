@@ -6,8 +6,10 @@ export const dynamic = "force-dynamic";
 const cardAccent: Record<number, { border: string; badge: string; icon: string }> = {
   1: { border: "border-orange-400", badge: "bg-orange-500", icon: "text-orange-400" },
   2: { border: "border-sky-400",    badge: "bg-sky-500",    icon: "text-sky-400" },
-  3: { border: "border-indigo-400", badge: "bg-indigo-500", icon: "text-indigo-400" },
+  4: { border: "border-teal-400",   badge: "bg-teal-500",   icon: "text-teal-400" },
 };
+
+const DISPLAY_MUNICIPALITY_IDS = [4, 2, 1]; // 岬町, 阪南市, 泉南市
 
 const defaultAccent = { border: "border-slate-300", badge: "bg-slate-500", icon: "text-slate-400" };
 
@@ -54,12 +56,12 @@ export default async function Home() {
             泉州せいじマップ
           </h1>
           <p className="mt-4 text-lg sm:text-xl text-slate-300">
-            泉州{totalMunicipalities}市・{totalMembers}名の議員情報を市民目線で可視化
+            泉州3市町・国会議員の議会情報を市民目線で可視化
           </p>
           <div className="mt-8 flex justify-center gap-4 flex-wrap">
             {[
-              { value: `${totalMunicipalities}市`, label: "対象自治体" },
-              { value: `${totalMembers}名`, label: "議員データ" },
+              { value: "3市町", label: "対象自治体" },
+              { value: `${totalMembers + 3}名`, label: "議員データ" },
               { value: "泉州エリア", label: "大阪府南部" },
             ].map((stat) => (
               <div
@@ -95,6 +97,7 @@ export default async function Home() {
             <option value="misaki">岬町</option>
             <option value="tajiri">田尻町</option>
             <option value="kumatori">熊取町</option>
+            <option value="kokkai">国会議員</option>
           </select>
           <button
             type="submit"
@@ -105,10 +108,10 @@ export default async function Home() {
         </form>
       </div>
 
-      {/* ── 自治体カードセクション ── */}
+      {/* ── カードセクション ── */}
       <main className="max-w-5xl mx-auto px-4 relative z-10">
-        <div className="grid gap-5 sm:grid-cols-3">
-          {municipalities?.map((muni) => {
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {municipalities?.filter((muni) => DISPLAY_MUNICIPALITY_IDS.includes(muni.id)).sort((a, b) => DISPLAY_MUNICIPALITY_IDS.indexOf(a.id) - DISPLAY_MUNICIPALITY_IDS.indexOf(b.id)).map((muni) => {
             const accent = cardAccent[muni.id] ?? defaultAccent;
             const memberCount = countMap[muni.id] ?? 0;
             const partyCount = partyMap[muni.id]?.size ?? 0;
@@ -118,26 +121,16 @@ export default async function Home() {
                 href={`/${muni.id}`}
                 className={`group block bg-white rounded-2xl border-t-4 ${accent.border} shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-6`}
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900">{muni.name}</h3>
-                    <div className="mt-3 flex gap-3">
-                      <span className={`inline-flex items-center gap-1 text-sm font-semibold ${accent.icon}`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {memberCount}名
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-sm text-slate-500">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        {partyCount}会派
-                      </span>
-                    </div>
-                  </div>
-                  <span className="text-slate-300 group-hover:text-slate-500 transition-colors text-xl mt-1">
-                    →
+                <h3 className="text-xl font-bold text-slate-900">{muni.name}</h3>
+                <div className="mt-3 flex gap-3">
+                  <span className={`inline-flex items-center gap-1 text-sm font-semibold ${accent.icon}`}>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {memberCount}名
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-sm text-slate-500">
+                    {partyCount}会派
                   </span>
                 </div>
                 <div className={`mt-4 text-xs font-medium text-white ${accent.badge} rounded-full px-3 py-1 w-fit`}>
@@ -146,6 +139,23 @@ export default async function Home() {
               </Link>
             );
           })}
+
+          {/* 国会議員カード */}
+          <div className="group block bg-white rounded-2xl border-t-4 border-red-500 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 p-6">
+            <h3 className="text-xl font-bold text-slate-900">泉州エリア国会議員</h3>
+            <div className="mt-3 flex flex-col gap-1.5">
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-red-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                3名
+              </span>
+              <span className="text-xs text-slate-500">大阪18区・19区</span>
+            </div>
+            <div className="mt-4 text-xs font-medium text-white bg-red-500 rounded-full px-3 py-1 w-fit">
+              議員一覧を見る
+            </div>
+          </div>
         </div>
 
         {/* ── 最新議会情報セクション ── */}

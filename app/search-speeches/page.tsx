@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 const cityNameMap: Record<string, string> = {
   sennan: "泉南市", hannan: "阪南市", izumisano: "泉佐野市",
   misaki: "岬町", tajiri: "田尻町", kumatori: "熊取町",
+  kokkai: "国会",
 };
 
 export default async function SearchSpeechesPage({
@@ -89,6 +90,7 @@ export default async function SearchSpeechesPage({
             <option value="misaki">岬町</option>
             <option value="tajiri">田尻町</option>
             <option value="kumatori">熊取町</option>
+            <option value="kokkai">国会議員</option>
           </select>
           <button
             type="submit"

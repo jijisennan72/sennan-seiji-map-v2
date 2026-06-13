@@ -27,6 +27,7 @@ type Member = {
 
 type Policy = { category: string; score: number };
 type Committee = { name: string; role: string | null };
+type Utterance = { id: number; session_label: string; session_type: string; content: string; source_file: string };
 type Accent = { from: string; to: string; label: string };
 
 const partyStyle: Record<string, { bg: string; text: string }> = {
@@ -57,6 +58,7 @@ export default function MemberDetail({
   municipality,
   policies,
   committees,
+  utterances,
   accent,
   municipalityId,
 }: {
@@ -64,6 +66,7 @@ export default function MemberDetail({
   municipality: { id: number; name: string };
   policies: Policy[];
   committees: Committee[];
+  utterances: Utterance[];
   accent: Accent;
   municipalityId: number;
 }) {
@@ -138,7 +141,7 @@ export default function MemberDetail({
                 socialLinks={member.social_links}
               />
             )}
-            {activeTab === "発言録" && <MinutesTab municipalityId={municipalityId} />}
+            {activeTab === "発言録" && <MinutesTab utterances={utterances} municipalityId={municipalityId} />}
             {activeTab === "選挙データ" && <ElectionTab />}
           </div>
         </div>
@@ -270,20 +273,146 @@ function SnsButton({ label, href }: { label: string; href: string }) {
 
 /* ── 発言録タブ ── */
 
-function MinutesTab({ municipalityId }: { municipalityId: number }) {
+const sessionTypeBadge: Record<string, { bg: string; text: string }> = {
+  regular:   { bg: "bg-blue-100",    text: "text-blue-700" },
+  committee: { bg: "bg-emerald-100", text: "text-emerald-700" },
+  rinji:     { bg: "bg-orange-100",  text: "text-orange-700" },
+};
+
+const UTTERANCE_LIMIT = 200;
+const PAGE_SIZE = 10;
+
+function UtteranceCard({ u }: { u: Utterance }) {
+  const [expanded, setExpanded] = useState(false);
+  const badge = sessionTypeBadge[u.session_type] ?? sessionTypeBadge.regular;
+  const needsTruncation = u.content.length > UTTERANCE_LIMIT;
+  const displayText = !expanded && needsTruncation ? u.content.slice(0, UTTERANCE_LIMIT) : u.content;
+
   return (
-    <div className="text-center py-12">
-      <div className="text-4xl mb-4">📝</div>
-      <p className="text-sm text-slate-500 mb-4">発言録データは準備中です</p>
-      {municipalityId === 1 && (
-        <a
-          href="https://gikai.shizuku.net"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block text-sm font-medium text-sky-600 hover:text-sky-700 bg-sky-50 rounded-full px-4 py-2 transition-colors"
+    <div className="bg-slate-50 rounded-xl p-4">
+      <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full mb-2 ${badge.bg} ${badge.text}`}>
+        {u.session_label}
+      </span>
+      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+        {displayText}
+        {!expanded && needsTruncation && "…"}
+      </p>
+      {needsTruncation && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-1.5 text-xs font-medium text-sky-600 hover:text-sky-700"
         >
-          泉南市の詳細な発言録はせんなん政治マップで見られます ↗
-        </a>
+          {expanded ? "折りたたむ" : "続きを読む"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function MinutesTab({ utterances, municipalityId }: { utterances: Utterance[]; municipalityId: number }) {
+  const [filter, setFilter] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+
+  // 発言がない場合（泉南市以外）
+  if (utterances.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-4xl mb-4">📝</div>
+        <p className="text-sm text-slate-500 mb-4">発言録データは準備中です</p>
+        {municipalityId === 1 && (
+          <a
+            href="https://gikai.shizuku.net"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-sm font-medium text-sky-600 hover:text-sky-700 bg-sky-50 rounded-full px-4 py-2 transition-colors"
+          >
+            泉南市の詳細な発言録はせんなん政治マップで見られます ↗
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  // 種別別カウント
+  const regularCount = utterances.filter((u) => u.session_type === "regular").length;
+  const committeeCount = utterances.filter((u) => u.session_type === "committee").length;
+  const rinjiCount = utterances.filter((u) => u.session_type === "rinji").length;
+
+  const filtered = filter ? utterances.filter((u) => u.session_type === filter) : utterances;
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const handleFilter = (f: string | null) => {
+    setFilter(f);
+    setPage(0);
+  };
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* 件数サマリー */}
+      <div className="flex flex-wrap gap-3 text-sm">
+        <span className="text-slate-500">全{utterances.length}件</span>
+        {regularCount > 0 && (
+          <span className="text-blue-600">定例会 {regularCount}件</span>
+        )}
+        {committeeCount > 0 && (
+          <span className="text-emerald-600">委員会 {committeeCount}件</span>
+        )}
+        {rinjiCount > 0 && (
+          <span className="text-orange-600">臨時会 {rinjiCount}件</span>
+        )}
+      </div>
+
+      {/* フィルターボタン */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { key: null, label: "全件", count: utterances.length },
+          ...(regularCount > 0 ? [{ key: "regular" as string | null, label: "定例会", count: regularCount }] : []),
+          ...(committeeCount > 0 ? [{ key: "committee" as string | null, label: "委員会", count: committeeCount }] : []),
+          ...(rinjiCount > 0 ? [{ key: "rinji" as string | null, label: "臨時会", count: rinjiCount }] : []),
+        ].map((item) => (
+          <button
+            key={item.label}
+            onClick={() => handleFilter(item.key)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+              filter === item.key
+                ? "bg-slate-800 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {item.label} ({item.count})
+          </button>
+        ))}
+      </div>
+
+      {/* 発言一覧 */}
+      <div className="flex flex-col gap-3">
+        {paginated.map((u) => (
+          <UtteranceCard key={u.id} u={u} />
+        ))}
+      </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            onClick={() => setPage(Math.max(0, page - 1))}
+            disabled={page === 0}
+            className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            ←
+          </button>
+          <span className="text-sm text-slate-500">
+            {page + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            →
+          </button>
+        </div>
       )}
     </div>
   );

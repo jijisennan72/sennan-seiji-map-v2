@@ -27,6 +27,7 @@ export default async function MemberPage({
     { data: member },
     { data: policies },
     { data: committees },
+    { data: utterances },
   ] = await Promise.all([
     supabase.from("municipalities").select("id, name").eq("id", muniId).single(),
     supabase
@@ -45,6 +46,12 @@ export default async function MemberPage({
       .select("name, role")
       .eq("member_id", memId)
       .order("id"),
+    supabase
+      .from("utterances")
+      .select("id, session_label, session_type, content, source_file")
+      .eq("member_id", memId)
+      .eq("municipality_id", muniId)
+      .order("id"),
   ]);
 
   if (!municipality || !member) {
@@ -59,6 +66,7 @@ export default async function MemberPage({
       municipality={municipality}
       policies={policies ?? []}
       committees={committees ?? []}
+      utterances={utterances ?? []}
       accent={accent}
       municipalityId={muniId}
     />

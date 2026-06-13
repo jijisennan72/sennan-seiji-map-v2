@@ -3,6 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 
+type SocialLinks = {
+  x?: string;
+  instagram?: string;
+  facebook?: string;
+  website?: string;
+  blog?: string;
+  youtube?: boolean;
+  line?: boolean;
+};
+
 type Member = {
   id: number;
   name: string;
@@ -12,7 +22,7 @@ type Member = {
   terms: number | null;
   term_period: string;
   role: string | null;
-  social_links: Record<string, unknown> | null;
+  social_links: SocialLinks | null;
 };
 
 type Policy = { category: string; score: number };
@@ -148,7 +158,7 @@ function BasicInfoTab({
 }: {
   policies: Policy[];
   committees: Committee[];
-  socialLinks: Record<string, unknown> | null;
+  socialLinks: SocialLinks | null;
 }) {
   const maxScore = 6;
 
